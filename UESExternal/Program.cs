@@ -1,4 +1,8 @@
-﻿using UES;
+﻿using SDK.Script.Astro2;
+using SDK.Script.Engine;
+using UES;
+using UES.Memory;
+using Console = System.Console;
 
 namespace UESExternal
 {
@@ -12,14 +16,12 @@ namespace UESExternal
 
             try
             {
-                // Configure UES for external memory access
-                // Replace "WitchFire-Win64-Shipping" with your target process name
-                UESConfig.ConfigureForExternal("WitchFire-Win64-Shipping");
                 
-                // Enable verbose logging for demonstration
+                UESConfig.ConfigureForExternal("WitchFire-Win64-Shipping");
+
                 UESConfig.EnableVerboseLogging = true;
                 UESConfig.EnableConsoleLogging = true;
-                
+
                 Console.WriteLine("Configuration:");
                 Console.WriteLine(UESConfig.GetConfigurationSummary());
                 Console.WriteLine();
@@ -34,7 +36,7 @@ namespace UESExternal
                     Console.WriteLine("Status:");
                     Console.WriteLine(unrealEngine.GetStatus());
                     Console.WriteLine();
-                    
+
                     // Demonstrate some basic functionality
                     if (unrealEngine.GNames != 0)
                     {
@@ -49,7 +51,7 @@ namespace UESExternal
                             Console.WriteLine($"  GetName test failed: {ex.Message}");
                         }
                     }
-                    
+
                     if (unrealEngine.GWorld != 0)
                     {
                         Console.WriteLine("Testing GWorld access:");
@@ -74,7 +76,7 @@ namespace UESExternal
                     return;
                 }
 
-                // ask user if they want to dump gnames
+                /*// ask user if they want to dump gnames
                 Console.WriteLine("Dump GNames? (y/n)");
                 var key = Console.ReadKey(true);
                 if (key.Key == ConsoleKey.Y)
@@ -105,7 +107,12 @@ namespace UESExternal
                     {
                         Console.WriteLine($"❌ SDK dump failed: {ex.Message}");
                     }
-                }
+                }*/
+
+                // Run the main loop
+                Console.WriteLine("Running main loop...");
+                MainLoop();
+
 
                 Console.WriteLine();
                 Console.WriteLine("Press any key to exit...");
@@ -118,6 +125,40 @@ namespace UESExternal
                 Console.WriteLine("Press any key to exit...");
                 Console.ReadKey();
             }
+        }
+
+        static bool FovFlag = false;
+
+        static int MainLoop()
+        {
+            while (true)
+            {
+                if (UnrealEngine.Instance.GWorld == 0) return 1;
+
+                var world = new World(UnrealEngine.Instance.MemoryAccess!.ReadMemory<nint>(UnrealEngine.Instance.GWorld));
+                if (world.Address == 0) return 2;
+
+                var Instance = world.OwningGameInstance;
+                if (Instance.Address == 0) return 3;
+
+                var LocalPlayer = Instance.LocalPlayers[0];
+                var PlayerController = LocalPlayer.PlayerController.As<DimensionPlayerControllerBase>();
+                if (PlayerController.Address == 0) return 4;
+
+
+                var currentFov = PlayerController.HipfireFOV;
+
+                
+
+                PlayerController.Invoke("UpdateFOV", 20f);
+
+
+
+                System.Threading.Thread.Sleep(100);
+            }
+
+
+            return 0;
         }
     }
 }

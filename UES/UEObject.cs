@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using UES.Memory;
@@ -284,6 +285,100 @@ namespace UES
         {
             memoryAccess.WriteMemory<T>(Address, value);
         }
+
+        /// <summary>
+        /// Gets a list of primitive values from an array property
+        /// </summary>
+        /// <typeparam name="T">Primitive type</typeparam>
+        /// <returns>List of values</returns>
+        public List<T> GetList<T>() where T : unmanaged
+        {
+            var list = new List<T>();
+            try
+            {
+                var arrayData = memoryAccess.ReadMemory<nint>(Address);
+                var arrayNum = memoryAccess.ReadMemory<int>(Address + 8);
+                
+                if (arrayData == 0 || arrayNum <= 0 || arrayNum > 10000) // Safety check
+                    return list;
+                
+                var elementSize = Marshal.SizeOf<T>();
+                for (int i = 0; i < arrayNum; i++)
+                {
+                    var value = memoryAccess.ReadMemory<T>(arrayData + i * elementSize);
+                    list.Add(value);
+                }
+            }
+            catch
+            {
+                // Return empty list on error
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Gets a list of strings from a string array property
+        /// </summary>
+        /// <returns>List of strings</returns>
+        public List<string> GetStringList()
+        {
+            var list = new List<string>();
+            try
+            {
+                var arrayData = memoryAccess.ReadMemory<nint>(Address);
+                var arrayNum = memoryAccess.ReadMemory<int>(Address + 8);
+                
+                if (arrayData == 0 || arrayNum <= 0 || arrayNum > 10000) // Safety check
+                    return list;
+                
+                for (int i = 0; i < arrayNum; i++)
+                {
+                    var stringPtr = memoryAccess.ReadMemory<nint>(arrayData + i * 8);
+                    if (stringPtr != 0)
+                    {
+                        var str = memoryAccess.ReadStringFromMemory(stringPtr, 256, Encoding.UTF8);
+                        list.Add(str ?? "");
+                    }
+                    else
+                    {
+                        list.Add("");
+                    }
+                }
+            }
+            catch
+            {
+                // Return empty list on error
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Gets a list of UEObjects from an object array property
+        /// </summary>
+        /// <returns>List of UEObjects</returns>
+        public List<UEObject> GetObjectList()
+        {
+            var list = new List<UEObject>();
+            try
+            {
+                var arrayData = memoryAccess.ReadMemory<nint>(Address);
+                var arrayNum = memoryAccess.ReadMemory<int>(Address + 8);
+                
+                if (arrayData == 0 || arrayNum <= 0 || arrayNum > 10000) // Safety check
+                    return list;
+                
+                for (int i = 0; i < arrayNum; i++)
+                {
+                    var objectPtr = memoryAccess.ReadMemory<nint>(arrayData + i * 8);
+                    list.Add(new UEObject(objectPtr));
+                }
+            }
+            catch
+            {
+                // Return empty list on error
+            }
+            return list;
+        }
         UInt64 boolMask = 0;
         public Boolean Flag
         {
@@ -473,6 +568,71 @@ namespace UES
                 return default(T);
             }
         }
+        /// <summary>
+        /// Invokes a function and returns a UEObject result
+        /// </summary>
+        /// <param name="funcName">Function name to invoke</param>
+        /// <param name="args">Function arguments</param>
+        /// <returns>UEObject result</returns>
+        public UEObject InvokeUEObject(String funcName, params Object[] args)
+        {
+            if (!memoryAccess?.IsValid() == true)
+            {
+                Logger.LogWarning($"Memory access not available for function invocation: {funcName}");
+                return new UEObject(0);
+            }
+
+            try
+            {
+                var funcAddr = GetFuncAddr(ClassAddr, ClassAddr, funcName);
+                if (funcAddr == 0)
+                {
+                    Logger.LogWarning($"Function address not found for: {funcName}");
+                    return new UEObject(0);
+                }
+
+                // Read original function flags
+                var initFlags = memoryAccess.ReadMemory<nint>(funcAddr + funcFlagsOffset);
+                var nativeFlag = initFlags;
+                nativeFlag |= 0x400; // Set native flag
+
+                // Temporarily modify function flags
+                memoryAccess.WriteMemory(funcAddr + funcFlagsOffset, nativeFlag);
+
+                // Convert arguments to nint array for execution
+                var nativeArgs = new nint[args.Length];
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] is nint ptr)
+                        nativeArgs[i] = ptr;
+                    else if (args[i] is int intVal)
+                        nativeArgs[i] = intVal;
+                    else if (args[i] is uint uintVal)
+                        nativeArgs[i] = (nint)uintVal;
+                    else if (args[i] is long longVal)
+                        nativeArgs[i] = (nint)longVal;
+                    else if (args[i] is ulong ulongVal)
+                        nativeArgs[i] = (nint)ulongVal;
+                    else
+                        nativeArgs[i] = 0; // Default for unsupported types
+                }
+
+                // Execute the function through the VTable
+                var result = memoryAccess.Execute(VTableFunc, Address, funcAddr, 0, 0, nativeArgs);
+
+                // Restore original function flags
+                memoryAccess.WriteMemory(funcAddr + funcFlagsOffset, initFlags);
+
+                // Return the result as a UEObject
+                return new UEObject(result);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Function invocation failed for {funcName}: {ex.Message}");
+                return new UEObject(0);
+            }
+        }
+
         public void Invoke(String funcName, params Object[] args)
         {
             Invoke<int>(funcName, args);

@@ -4,6 +4,101 @@ using System.Runtime.InteropServices;
 namespace UES.Collections
 {
     /// <summary>
+    /// Generic array wrapper for enum types that don't inherit from UEObject
+    /// </summary>
+    /// <typeparam name="T">Enum type</typeparam>
+    public class EnumArray<T> : UEObject where T : Enum
+    {
+        /// <summary>
+        /// Creates a new EnumArray wrapper from a UEObject
+        /// </summary>
+        /// <param name="obj">Source UEObject containing array data</param>
+        public EnumArray(UEObject obj) : base()
+        {
+            if (obj == null) 
+            {
+                Address = 0;
+                return;
+            }
+            
+            Address = obj.Address;
+            _classAddr = obj.ClassAddr;
+            _substructAddr = obj._substructAddr;
+        }
+
+        /// <summary>
+        /// Creates a new EnumArray wrapper from an address
+        /// </summary>
+        /// <param name="addr">Memory address of the array</param>
+        public EnumArray(nint addr) : base(addr) { }
+
+        /// <summary>
+        /// Gets the number of elements in the array
+        /// </summary>
+        public new int Num
+        {
+            get
+            {
+                if (_num != int.MaxValue) return _num;
+                
+                if (!UnrealEngine.Instance?.MemoryAccess?.IsValid() == true)
+                    return 0;
+                
+                _num = UnrealEngine.Instance.MemoryAccess.ReadMemory<int>(Address + 8);
+                
+                // Reasonable upper limit to prevent memory issues
+                if (_num > 0x20000) _num = 0x20000;
+                if (_num < 0) _num = 0;
+                
+                return _num;
+            }
+        }
+
+        /// <summary>
+        /// Accesses array element by index
+        /// </summary>
+        /// <param name="index">Index of the element</param>
+        /// <returns>Enum value at the specified index</returns>
+        public new T this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= Num || !UnrealEngine.Instance?.MemoryAccess?.IsValid() == true)
+                {
+                    return default(T);
+                }
+
+                try
+                {
+                    var elementSize = Marshal.SizeOf<int>(); // Most enums are int-based
+                    var elementAddress = Value + index * elementSize;
+                    var rawValue = UnrealEngine.Instance.MemoryAccess.ReadMemory<int>(elementAddress);
+                    return (T)Enum.ToObject(typeof(T), rawValue);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Failed to access enum array element {index}: {ex.Message}");
+                    return default(T);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets all elements as an array
+        /// </summary>
+        /// <returns>Array containing all elements</returns>
+        public T[] ToArray()
+        {
+            var result = new T[Num];
+            for (int i = 0; i < Num; i++)
+            {
+                result[i] = this[i];
+            }
+            return result;
+        }
+    }
+
+    /// <summary>
     /// Generic array wrapper for UE objects providing efficient array access
     /// Supports both object references and value types
     /// </summary>
@@ -96,7 +191,7 @@ namespace UES.Collections
         /// </summary>
         /// <param name="index">Index of the element</param>
         /// <returns>UEObject at the specified index</returns>
-        public T this[int index]
+        public new T this[int index]
         {
             get
             {
@@ -197,7 +292,7 @@ namespace UES.Collections
         /// <summary>
         /// Clears the cached array data
         /// </summary>
-        public void ClearCache()
+        public new void ClearCache()
         {
             _arrayCache = System.Array.Empty<byte>();
             _num = int.MaxValue;

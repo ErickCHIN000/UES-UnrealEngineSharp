@@ -76,6 +76,18 @@ namespace UES
         }
 
         /// <summary>
+        /// Logs memory read failure messages (only shown when memory read failure logging is enabled)
+        /// </summary>
+        /// <param name="message">Memory read failure message to log</param>
+        public static void LogMemoryReadFailure(string message)
+        {
+            if (!UESConfig.DisableMemoryReadFailureLogging)
+            {
+                LogVerbose($"Memory Read Failure: {message}");
+            }
+        }
+
+        /// <summary>
         /// Logs a message with dual colors for key-value pairs
         /// </summary>
         /// <param name="key">The key part of the message</param>

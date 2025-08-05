@@ -72,6 +72,21 @@ namespace UES
         public static string LogFilePath { get; set; } = "UES.log";
 
         /// <summary>
+        /// Whether to enable multithreaded SDK generation for better performance
+        /// </summary>
+        public static bool EnableMultithreadedSDKGeneration { get; set; } = true;
+
+        /// <summary>
+        /// Whether to disable logging of failed memory chunk reading operations
+        /// </summary>
+        public static bool DisableMemoryReadFailureLogging { get; set; } = false;
+
+        /// <summary>
+        /// Timeout in seconds for SDK generation operations to prevent infinite loops
+        /// </summary>
+        public static int SDKGenerationTimeoutSeconds { get; set; } = 300; // 5 minutes default
+
+        /// <summary>
         /// Gets whether external memory mode is configured
         /// </summary>
         public static bool UseExternalMemory => MemoryMode == UESMemoryMode.External;
@@ -102,6 +117,9 @@ namespace UES
             EnableConsoleLogging = true;
             EnableFileLogging = false;
             LogFilePath = "UES.log";
+            EnableMultithreadedSDKGeneration = true;
+            DisableMemoryReadFailureLogging = false;
+            SDKGenerationTimeoutSeconds = 300;
         }
 
         /// <summary>
@@ -169,6 +187,10 @@ namespace UES
             
             if (EnableFileLogging)
                 summary += $" ({LogFilePath})";
+            
+            summary += $"\n  Multithreaded SDK Generation: {EnableMultithreadedSDKGeneration}\n";
+            summary += $"  Disable Memory Read Failure Logging: {DisableMemoryReadFailureLogging}\n";
+            summary += $"  SDK Generation Timeout: {SDKGenerationTimeoutSeconds} seconds";
             
             return summary;
         }

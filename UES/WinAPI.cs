@@ -7,7 +7,7 @@ namespace UES
     /// Windows API imports for memory operations and process manipulation
     /// AOT-compatible implementation with explicit marshaling
     /// </summary>
-    internal static class WinAPI
+    public class WinAPI
     {
         // Memory operations
         [DllImport("kernel32.dll", SetLastError = true)]

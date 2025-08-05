@@ -13,9 +13,9 @@ namespace UES.Memory
     /// </summary>
     public class ExternalMemory : IMemoryAccess
     {
-        private readonly Process _process;
-        private readonly nint _baseAddress;
-        private readonly bool _isValid;
+        public readonly Process _process;
+        public readonly nint _baseAddress;
+        public readonly bool _isValid;
 
         /// <summary>
         /// Creates external memory access for the specified process name
@@ -229,14 +229,14 @@ namespace UES.Memory
                 {
                     if (!WinAPI.ReadProcessMemory(_process.Handle, address + i * chunkSize, chunk, blockSize, out _))
                     {
-                        Logger.LogWarning($"Failed to read memory chunk {i + 1}/{blocks} at 0x{address + i * chunkSize:X}");
+                        Logger.LogMemoryReadFailure($"Failed to read memory chunk {i + 1}/{blocks} at 0x{address + i * chunkSize:X}");
                         break;
                     }
                     Array.Copy(chunk, 0, buffer, i * chunkSize, blockSize);
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError($"Exception reading memory chunk {i + 1}/{blocks}: {ex.Message}");
+                    Logger.LogMemoryReadFailure($"Exception reading memory chunk {i + 1}/{blocks}: {ex.Message}");
                     break;
                 }
             }

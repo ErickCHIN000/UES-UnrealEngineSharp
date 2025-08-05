@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36327.8 d17.14
+VisualStudioVersion = 17.14.36327.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UES", "UES\UES.csproj", "{516240F0-A7EF-4A62-BBBB-94C93474106E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UESExternal", "UESExternal\UESExternal.csproj", "{EB587C29-1AD4-4F7B-A11D-5B0DBFFF89BE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UESInternal", "UESInternal\UESInternal.csproj", "{EC625FD2-BB11-4CE4-9417-CDEBF8424B5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSDK", "TestSDK\TestSDK.csproj", "{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,14 @@ Global
 		{EC625FD2-BB11-4CE4-9417-CDEBF8424B5F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EC625FD2-BB11-4CE4-9417-CDEBF8424B5F}.Release|x64.ActiveCfg = Release|x64
 		{EC625FD2-BB11-4CE4-9417-CDEBF8424B5F}.Release|x64.Build.0 = Release|x64
+		{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}.Debug|x64.Build.0 = Debug|Any CPU
+		{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}.Release|x64.ActiveCfg = Release|Any CPU
+		{C7706BC9-1633-43CC-B6A8-56D28A0A48BA}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

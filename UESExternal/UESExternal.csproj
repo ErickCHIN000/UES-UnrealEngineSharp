@@ -30,6 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TestSDK\TestSDK.csproj" />
     <ProjectReference Include="..\UES\UES.csproj" />
   </ItemGroup>
 
