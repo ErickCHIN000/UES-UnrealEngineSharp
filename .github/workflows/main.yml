@@ -49,6 +49,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./MYPROJECTNAME.zip
-        asset_name: MYPROJECTNAME.zip
+        asset_path: ./UnrealEngineSharp.zip
+        asset_name: UnrealEngineSharp.zip
         asset_content_type: application/zip
