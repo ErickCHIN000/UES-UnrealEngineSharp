@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*' # Triggers on tag push like v1.0.0
+      - 'v*'
 
 jobs:
   build:
@@ -26,6 +26,12 @@ jobs:
     - name: Publish
       run: dotnet publish --configuration Release --no-build -o ./publish
 
+    - name: Zip publish output
+      run: |
+        cd publish
+        zip -r ../MYPROJECTNAME.zip .
+        cd ..
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -43,6 +49,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./publish/your-artifact.zip
-        asset_name: UnrealEngineSharp.zip
+        asset_path: ./MYPROJECTNAME.zip
+        asset_name: MYPROJECTNAME.zip
         asset_content_type: application/zip
